@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тренажёр по русскому языку</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Lobster', cursive;
+            color: white;
+            background: #000;
+        }
+        
+        #video-background {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -100;
+            object-fit: cover;
+        }
+        
+        #content {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        #text-animation {
+             position: absolute;
+            left: -137px;
+            top: 50%;
+            transform: translateY(-50%) rotate(180deg);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 48px;
+            background: linear-gradient(
+                135deg, 
+                #4682B4,
+                #B0C4DE,
+                #4682B4,
+                #4682B4,
+                #4682B4, 
+                #E6E6FA,
+                #4682B4
+            );
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            padding: 10px 5px;
+            text-shadow: 0 0 20px rgba(70, 130, 180, 0.6);
+            animation: 
+                fadeIn 6s ease-in-out forwards,
+                pearlShine 20s ease-in-out infinite;
+            opacity: 0;
+            z-index: 1;
+            white-space: nowrap;
+        }
+
+        @keyframes pearlShine {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+                text-shadow: 0 0 30px rgba(176, 196, 222, 1);
+            }
+        }
+
+        #zastavka-container {
+            position: relative;
+            width: 85%;
+            max-width: 800px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(70, 130, 180, 0.7);
+            border-radius: 15px; /* или любое другое значение */
+        }
+        
+        #zastavka-video {
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+            filter: drop-shadow(0 0 10px rgba(70, 130, 180, 0.5));
+        }
+        
+        #play-button {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(70, 130, 180, 0.9);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+            outline: none;
+        }
+        
+        #play-button:hover {
+            background: rgba(70, 130, 180, 1);
+            transform: scale(1.1);
+        }
+        
+        #play-button::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 15px solid white;
+            margin-left: 3px;
+        }
+        
+        #play-button.playing::after {
+            content: '❚❚';
+            border: none;
+            width: 15px;
+            height: 15px;
+            margin-left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .buttons-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .option-button {
+            padding: 15px 30px;
+            font-size: 24px;
+            font-family: 'Lobster', cursive;
+            color: white;
+            background: linear-gradient(135deg, #4682B4, #1E3A5F, #4682B4);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .option-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .option-button:active {
+            transform: translateY(0);
+        }
+        
+        .option-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .option-button:hover::before {
+            left: 100%;
+        }
+        
+        #volume-control {
+            position: absolute;
+            bottom: 15px;
+            right: 65px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+            z-index: 10;
+        }
+        
+        #volume-slider {
+            width: 100px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #1E3A5F;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #4682B4;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        #volume-icon {
+            color: #5D8AA8;
+            font-size: 16px;
+        }
+        
+        /* Модальные окна - ИЗМЕНЕНО: убрали черный фон */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            /* Убрали background-color чтобы было видно видео */
+            overflow: auto;
+        }
+        
+        .modal-content {
+            position: relative;
+            margin: 15px auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1000px;
+            /* Добавили полупрозрачный фон с размытием */
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(70, 130, 180, 0.5);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(70, 130, 180, 0.3);
+        }
+        
+        .close {
+             position: absolute;
+            top: 25px;
+            right: 60px;
+            color: #4682B4;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 1010;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+       
+        .close:hover {
+            color: #B0C4DE;
+            transform: scale(1.1);
+        }
+        
+        #pdf-viewer {
+            width: 100%;
+            height: 80vh;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        /* Стили для просмотра изображения с увеличением и прокруткой */
+        .image-viewer-container {
+            overflow: auto;
+            flex: 1;
+            border-radius: 5px;
+            background: rgba(42, 42, 42, 0.7);
+            padding: 10px;
+            margin-bottom: 15px;
+            max-height: 70vh;
+        }
+        
+        #image-container {
+            position: relative;
+            width: fit-content;
+            height: fit-content;
+            min-width: 100%;
+            min-height: 100%;
+        }
+        
+        #table-image {
+            display: block;
+            max-width: 1000px;
+            width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(70, 130, 180, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .zoom-controls {
+            position: sticky;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(70, 130, 180, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .zoom-btn:hover {
+            background: rgba(70, 130, 180, 1);
+            transform: scale(1.1);
+        }
+        
+        .image-note {
+            margin-top: 15px;
+            color: #4682B4;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .scale-info {
+            color: #4682B4;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .buttons-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .option-button {
+                padding: 12px 25px;
+                font-size: 20px;
+                min-width: 180px;
+            }
+            
+            #text-animation {
+                position: static;
+                writing-mode: horizontal-tb;
+                transform: none;
+                margin-bottom: 20px;
+                animation: fadeIn 3s forwards;
+                text-align: center;
+                width: 100%;
+                font-size: 32px;
+                white-space: normal;
+                transform: rotate(0deg);
+                left: 0;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                padding: 15px;
+            }
+            
+            .buttons-container.additional-buttons {
+                gap: 10px;
+            }
+            
+            .buttons-container.additional-buttons .option-button {
+                min-width: auto;
+                padding: 10px 15px;
+                font-size: 16px;
+            }
+            
+            .zoom-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+            
+            .image-viewer-container {
+                max-height: 60vh;
+            }
+            
+            .close {
+                top: 15px;
+                right: 25px;
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <video id="video-background" autoplay muted loop playsinline>
+        <source src="video/fone_2.mp4" type="video/mp4">
+    </video>
+    
+    <div id="content">
+        <div id="zastavka-container">
+            <div id="text-animation">СДАЙ ЕГЭ на все 100!</div>
+            <video id="zastavka-video" playsinline>
+                <source src="video/Zastavka_5.mp4" type="video/mp4">
+            </video>
+            <button id="play-button"></button>
+            <div id="volume-control">
+                <span id="volume-icon">🔊</span>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.7">
+            </div>
+        </div>
+        
+        <div class="buttons-container">
+            <a href="pages/1-10.html" class="option-button">Варианты 1-10</a>
+            <a href="pages/11-20.html" class="option-button">Варианты 11-20</a>
+            <button class="option-button" onclick="openModal('pismo')">Письмо Рособрнадзора</button>
+            <button class="option-button" onclick="openModal('demo')">Демоверсия 2026 г.</button>
+        </div>
+        
+        <!-- Новые кнопки -->
+        <div class="buttons-container additional-buttons">
+            <button class="option-button" onclick="openModal('blanki')">Бланки ответов для ознакомления</button>
+            <button class="option-button" onclick="openModal('pravila')">Правила заполнения бланков ответов</button>
+            <button class="option-button" onclick="openModal('table')">Таблица соответствия баллов 2025 г.</button>
+        </div>
+    </div>
+    
+    <!-- Модальные окна -->
+    <div id="blanki-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('blanki')">&times;</span>
+            <iframe id="pdf-viewer" src="PDF/blanki.pdf"></iframe>
+        </div>
+    </div>
+    
+    <div id="pravila-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('pravila')">&times;</span>
+            <iframe id="pdf-viewer" src="PDF/pravila.pdf"></iframe>
+        </div>
+    </div>
+    
+    <div id="table-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('table')">&times;</span>
+            <div class="image-viewer-container">
+                <div id="image-container">
+                    <img id="table-image" src="imagas/RU_sootv.jpg" alt="Таблица соответствия баллов 2025">
+                </div>
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomOut()">-</button>
+                <button class="zoom-btn" onclick="resetZoom()">100%</button>
+                <button class="zoom-btn" onclick="zoomIn()">+</button>
+            </div>
+            <div class="scale-info" id="scale-info">Масштаб: 100%</div>
+            <p class="image-note">Используйте кнопки для увеличения и прокрутку для просмотра</p>
+        </div>
+    </div>
+
+    <!-- Новое модальное окно для письма -->
+    <div id="pismo-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('pismo')">&times;</span>
+            <iframe id="pdf-viewer" src="PDF/pismo.pdf"></iframe>
+        </div>
+    </div>
+    
+    <!-- Новое модальное окно для демоверсии 2026 -->
+    <div id="demo-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('demo')">&times;</span>
+            <iframe id="pdf-viewer" src="PDF/2026_DEMO.pdf"></iframe>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация элементов
+        const zastavkaVideo = document.getElementById('zastavka-video');
+        const playButton = document.getElementById('play-button');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeIcon = document.getElementById('volume-icon');
+        const tableImage = document.getElementById('table-image');
+        const scaleInfo = document.getElementById('scale-info');
+        let currentScale = 1;
+        
+        // Автозагрузка видео
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('video-background').play().catch(e => console.log(e));
+            zastavkaVideo.volume = 0.7;
+            zastavkaVideo.preload = "auto";
+            zastavkaVideo.load();
+        });
+        
+        // Управление воспроизведением
+        playButton.addEventListener('click', function() {
+            if (zastavkaVideo.paused) {
+                zastavkaVideo.muted = false;
+                zastavkaVideo.currentTime = 0;
+                zastavkaVideo.play()
+                    .then(() => playButton.classList.add('playing'))
+                    .catch(e => {
+                        console.log("Ошибка воспроизведения:", e);
+                        zastavkaVideo.muted = true;
+                        zastavkaVideo.play()
+                            .then(() => playButton.classList.add('playing'))
+                            .catch(e => console.log("Полная ошибка:", e));
+                    });
+            } else {
+                zastavkaVideo.pause();
+                playButton.classList.remove('playing');
+            }
+        });
+        
+        // Остановка на последнем кадре
+        zastavkaVideo.addEventListener('timeupdate', function() {
+            if (this.duration > 0 && this.currentTime > this.duration - 0.5) {
+                this.pause();
+                this.currentTime = this.duration - 0.05;
+                playButton.classList.remove('playing');
+            }
+        });
+        
+        // Регулятор громкости
+        volumeSlider.addEventListener('input', function() {
+            zastavkaVideo.volume = this.value;
+            volumeIcon.textContent = this.value == 0 ? '🔇' : (this.value < 0.5 ? '🔈' : '🔊');
+        });
+        
+        // Функции для модальных окон
+        function openModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.style.display = 'block';
+            
+            // Сброс масштаба изображения при открытии
+            if (type === 'table') {
+                resetZoom();
+            }
+            
+            // Остановка видео при открытии модального окна
+            if (!zastavkaVideo.paused) {
+                zastavkaVideo.pause();
+                playButton.classList.remove('playing');
+            }
+        }
+        
+        function closeModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.style.display = 'none';
+        }
+        
+        // Функции для увеличения изображения
+        function zoomIn() {
+            if (currentScale < 3) {
+                currentScale += 0.25;
+                updateZoom();
+            }
+        }
+        
+        function zoomOut() {
+            if (currentScale > 0.5) {
+                currentScale -= 0.25;
+                updateZoom();
+            }
+        }
+        
+        function resetZoom() {
+            currentScale = 1;
+            updateZoom();
+        }
+        
+        function updateZoom() {
+            tableImage.style.transform = `scale(${currentScale})`;
+            scaleInfo.textContent = `Масштаб: ${Math.round(currentScale * 100)}%`;
+            
+            // Прокрутка к центру после изменения масштаба
+            const container = document.querySelector('.image-viewer-container');
+            container.scrollLeft = (tableImage.width * currentScale - container.clientWidth) / 2;
+            container.scrollTop = (tableImage.height * currentScale - container.clientHeight) / 2;
+        }
+        
+        // Закрытие модального окна при клике вне его
+        window.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    resetZoom();
+                }
+            });
+        });
+        
+        // Фикс для iOS
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            document.addEventListener('touchstart', function() {}, { passive: true });
+        }
+    </script>
+</body>
+</html>
